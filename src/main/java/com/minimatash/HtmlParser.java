@@ -2,21 +2,45 @@ package com.minimatash;
 
 import com.minimatash.search.HtmlSearch;
 import com.minimatash.search.impl.HtmlSearchImpl;
+import org.apache.commons.cli.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jsoup.nodes.Element;
+
+import java.io.IOException;
 
 public class HtmlParser {
 
     private static final HtmlSearch htmlSearch = new HtmlSearchImpl();
+    private static Logger logger = LogManager.getLogger();
 
     public static void main(String[] args) {
 
-        String originPath = args[0];
-        String samplePath = args[1];
-        String targetElementId = args[2];
 
-        Element result = htmlSearch.searchForElement(originPath,samplePath,targetElementId);
+        Options options = new Options();
+        options.addOption("of", true, "original file path");
+        options.addOption("sf", true, "sample file path");
+        options.addOption("tei", true, "target element id");
 
-        System.out.println(resultPathBuilder(result));
+        CommandLineParser parser = new DefaultParser();
+        try {
+            CommandLine cmd = parser.parse(options, args);
+            if(cmd.hasOption("of") && cmd.hasOption("sf") && cmd.hasOption("tei")) {
+                String originPath = cmd.getOptionValue("of");
+                String samplePath = cmd.getOptionValue("sf");
+                String targetElementId = cmd.getOptionValue("tei");
+
+                Element result = htmlSearch.searchForElement(originPath,samplePath,targetElementId);
+
+                System.out.println(resultPathBuilder(result));
+            } else {
+                throw new IllegalArgumentException("Wrong options provided");
+            }
+
+        } catch (ParseException | IOException e) {
+            logger.error(e.getMessage());
+        }
+
     }
 
     private static String resultPathBuilder(Element result) {

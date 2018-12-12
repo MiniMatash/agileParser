@@ -6,6 +6,6 @@ import org.jsoup.select.Elements;
 
 public interface ElementCheck {
 
-    Candidate elementsChecker(Elements candidates, Candidate candidate, Element criterion, Integer candidateSimilarity);
+    Candidate elementsChecker(Elements candidates, Candidate candidate, Element criterion);
 
 }

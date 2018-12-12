@@ -6,7 +6,7 @@ public class Candidate {
 
     private Element candidate;
 
-    private Integer candidateSimilarity;
+    private Double candidateSimilarity;
 
     public Element getCandidate() {
         return candidate;
@@ -16,11 +16,15 @@ public class Candidate {
         this.candidate = candidate;
     }
 
-    public Integer getCandidateSimilarity() {
+    public Double getCandidateSimilarity() {
         return candidateSimilarity;
     }
 
-    public void setCandidateSimilarity(Integer candidateSimilarity) {
+    public void setCandidateSimilarity(Double candidateSimilarity) {
         this.candidateSimilarity = candidateSimilarity;
+    }
+
+    public Candidate() {
+        setCandidateSimilarity(0.0);
     }
 }

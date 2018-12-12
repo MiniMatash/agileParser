@@ -20,12 +20,11 @@ import java.util.Optional;
 
 public class HtmlSearchImpl implements HtmlSearch {
 
-    private Logger logger = LogManager.getLogger();
     private static final String CHARSET_NAME = Charset.defaultCharset().name();
     private static final ElementCheck elementsChecker = new ElementCheckImpl();
 
     @Override
-    public Element searchForElement(String originPath, String samplePath, String elementId) {
+    public Element searchForElement(String originPath, String samplePath, String elementId) throws IOException {
 
         Optional<Element> element = findElementById(new File(originPath), elementId);
 
@@ -36,20 +35,22 @@ public class HtmlSearchImpl implements HtmlSearch {
         return recursiveSearch(samplePath, element.get().parent(), element.get(), new Candidate(), 0).getCandidate();
     }
 
-    private Candidate recursiveSearch(String filePath, Element parent, Element criterion, Candidate candidate, Integer candidateSimilarity){
+    private Candidate recursiveSearch(String filePath, Element parent, Element criterion, Candidate candidate, Integer candidateSimilarity) throws IOException {
         for (Attribute criterionAttributes : criterion.attributes()) {
 
-            String cssQuery = queryBuilder(criterion.parent(), criterion, criterionAttributes.getKey());
+            String cssQuery = queryBuilder(parent, criterion, criterionAttributes.getKey());
             if (cssQuery == null) {
                 break;
             }
 
             Optional<Elements> candidates = findElementsByQuery(new File(filePath), cssQuery);
-            if(!candidates.isPresent()){
-                continue;
+            if (candidates.isPresent()) {
+                if (candidates.get().isEmpty())
+                    continue;
+
+                candidate = elementsChecker.elementsChecker(candidates.get(), candidate, criterion);
             }
 
-            candidate = elementsChecker.elementsChecker(candidates.get(), candidate, criterion, candidateSimilarity);
 
         }
         if (parent.hasParent()) {
@@ -86,36 +87,23 @@ public class HtmlSearchImpl implements HtmlSearch {
         return cssQuery.toString();
     }
 
-    private Optional<Elements> findElementsByQuery(File htmlFile, String cssQuery) {
-        try {
-            Document doc = Jsoup.parse(
-                    htmlFile,
-                    CHARSET_NAME,
-                    htmlFile.getAbsolutePath());
+    private Optional<Elements> findElementsByQuery(File htmlFile, String cssQuery) throws IOException {
+        Document doc = Jsoup.parse(
+                htmlFile,
+                CHARSET_NAME,
+                htmlFile.getAbsolutePath());
 
-            return Optional.ofNullable(doc.select(cssQuery));
-
-        } catch (IOException e) {
-            logger.error("Error reading file " + htmlFile.getAbsolutePath());
-            System.exit(1);
-        }
-        return null;
+        return Optional.ofNullable(doc.select(cssQuery));
     }
 
-    private Optional<Element> findElementById(File htmlFile, String targetElementId) {
-        try {
-            Document doc = Jsoup.parse(
-                    htmlFile,
-                    CHARSET_NAME,
-                    htmlFile.getAbsolutePath());
+    private Optional<Element> findElementById(File htmlFile, String targetElementId) throws IOException {
+        Document doc = Jsoup.parse(
+                htmlFile,
+                CHARSET_NAME,
+                htmlFile.getAbsolutePath());
 
-            return Optional.ofNullable(doc.getElementById(targetElementId));
+        return Optional.ofNullable(doc.getElementById(targetElementId));
 
-        } catch (IOException e) {
-            logger.error("Error reading file " + htmlFile.getAbsolutePath());
-            System.exit(1);
-        }
-        return null;
     }
 
 
